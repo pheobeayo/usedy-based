@@ -1,4 +1,3 @@
-import React from "react";
 import image1 from "../assets/heroimage1.svg";
 import image2 from "../assets/heroimage2.svg";
 import bgImg from "../assets/ornament.svg";

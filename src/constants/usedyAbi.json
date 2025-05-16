@@ -1,7 +1,7 @@
 [
   {
     "inputs": [
-      { "internalType": "address", "name": "_recycleToken", "type": "address" },
+      { "internalType": "address", "name": "_usedyToken", "type": "address" },
       {
         "internalType": "address",
         "name": "_platformFeeRecipient",
@@ -238,7 +238,7 @@
           { "internalType": "uint256", "name": "sold", "type": "uint256" },
           { "internalType": "uint256", "name": "inProgress", "type": "uint256" }
         ],
-        "internalType": "struct EcoReward.Product[]",
+        "internalType": "struct UsedDy.Product[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -268,7 +268,7 @@
           { "internalType": "uint256", "name": "sold", "type": "uint256" },
           { "internalType": "uint256", "name": "inProgress", "type": "uint256" }
         ],
-        "internalType": "struct EcoReward.Product",
+        "internalType": "struct UsedDy.Product",
         "name": "",
         "type": "tuple"
       }
@@ -305,7 +305,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct EcoReward.sellerDetail",
+        "internalType": "struct UsedDy.sellerDetail",
         "name": "",
         "type": "tuple"
       }
@@ -340,7 +340,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct EcoReward.sellerDetail[]",
+        "internalType": "struct UsedDy.sellerDetail[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -390,7 +390,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct EcoReward.sellerDetail[]",
+        "internalType": "struct UsedDy.sellerDetail[]",
         "name": "",
         "type": "tuple[]"
       }
