@@ -74,8 +74,6 @@ const useGetSeller = () => {
             console.warn(`Seller at index ${index} is not properly formatted:`, item);
             return null;
           }
-
-          // Add more robust checking for each field
           try {
             return {
               address: item[0] || "",

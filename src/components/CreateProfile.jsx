@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Modal from '@mui/material/Modal';
 import useCreateProfile from '../Hooks/useCreateProfile';
+import { toast } from "react-toastify";
 
 const style = {
   position: 'absolute',
@@ -17,7 +18,7 @@ const style = {
   p: 4,
 };
 
-const CreateProfile = ({ refetchSellers }) => {
+const CreateProfile = ({ onProfileCreated }) => {
   const [open, setOpen] = useState(false);
   const [sellerName, setSellerName] = useState('');
   const [location, setLocation] = useState('');
@@ -28,16 +29,51 @@ const CreateProfile = ({ refetchSellers }) => {
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
+  const validateForm = useCallback(() => {
+    if (!sellerName.trim()) {
+      toast.error("Seller name is required", { position: "top-center" });
+      return false;
+    }
+    
+    if (!location.trim()) {
+      toast.error("Location is required", { position: "top-center" });
+      return false;
+    }
+    
+    if (!mail.trim()) {
+      toast.error("Email is required", { position: "top-center" });
+      return false;
+    }
+    
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(mail)) {
+      toast.error("Please enter a valid email address", { position: "top-center" });
+      return false;
+    }
+    
+    return true;
+  }, [sellerName, location, mail]);
+
   const handleCreateProfile = async () => {
+    if (!validateForm()) return;
+    
     const success = await createProfile(sellerName, location, mail);
     if (success) {
-      if (refetchSellers) {
-        refetchSellers(); // 👈 manually refresh seller data
-      }
       setSellerName('');
       setLocation('');
       setMail('');
       setOpen(false);
+      
+      if (onProfileCreated && typeof onProfileCreated === 'function') {
+        setTimeout(() => {
+          onProfileCreated();
+        }, 2000);
+      }
+      
+      toast.success("Profile created successfully! The page will refresh shortly.", { 
+        position: "top-center",
+        autoClose: 2000
+      });
     }
   };
 
