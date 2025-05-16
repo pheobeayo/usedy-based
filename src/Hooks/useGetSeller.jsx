@@ -9,7 +9,7 @@ const useGetSeller = () => {
   const [error, setError] = useState(null);
   const [sellerCount, setSellerCount] = useState(0);
 
-  const contract = useContractInstance(false); // read-only
+  const contract = useContractInstance(false); 
   const { isConnected } = useAppKitAccount();
   const { walletProvider } = useAppKitProvider("eip155");
 
@@ -22,7 +22,6 @@ const useGetSeller = () => {
         return proxyData[i];
       });
     }
-    // If it's a simple value, return it as is
     return proxyData;
   };
 
@@ -44,8 +43,7 @@ const useGetSeller = () => {
     setLoading(true);
     try {
       console.log("Attempting to fetch sellers with contract:", contract);
-      
-      // Verify the contract has the expected method
+
       if (typeof contract.getallSeller !== 'function') {
         console.error("Contract does not have getallSeller method:", contract);
         setError("Contract interface mismatch - missing getallSeller method");
@@ -56,7 +54,6 @@ const useGetSeller = () => {
       const rawData = await contract.getallSeller();
       console.log("Raw sellers data received:", rawData);
 
-      // Convert the proxy objects to plain JavaScript objects
       const sellersArray = convertProxyToObject(rawData);
       console.log("Converted sellers array:", sellersArray);
 
@@ -90,7 +87,7 @@ const useGetSeller = () => {
             return null;
           }
         })
-        .filter(item => item !== null); // Remove any null items
+        .filter(item => item !== null); 
 
       console.log("Processed sellers data:", mapped);
       setAllSeller(mapped);
@@ -108,14 +105,13 @@ const useGetSeller = () => {
   useEffect(() => {
     if (!isConnected) {
       console.log("User not connected - skipping seller fetch");
-      setLoading(false); // Don't show loading if not connected
+      setLoading(false); 
       return;
     }
 
     console.log("User connected - fetching seller data");
     fetchAllSeller();
 
-    // Only set up event listener if we have the necessary env variables
     const contractAddress = import.meta.env.VITE_USEDY_ADDRESS;
     const wsRpcUrl = import.meta.env.VITE_WSS_RPC_PROVIDER;
     
@@ -132,7 +128,6 @@ const useGetSeller = () => {
     try {
       provider = new ethers.WebSocketProvider(wsRpcUrl);
       
-      // Check if provider is properly connected
       provider.getBlockNumber()
         .then(blockNumber => {
           console.log("WebSocket provider connected - current block:", blockNumber);

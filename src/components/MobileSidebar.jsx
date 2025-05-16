@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Sling as Hamburger } from "hamburger-react";
 import { CgHomeAlt } from "react-icons/cg";
 import { BiBox } from "react-icons/bi";
@@ -8,12 +8,40 @@ import { ImCart } from "react-icons/im";
 import { BsBell } from "react-icons/bs";
 import { BsReceipt } from "react-icons/bs";
 import { NavLink } from "react-router-dom";
-import { useDisconnect } from "@reown/appkit/react";
+import { useDisconnect,  useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
 import logo from '../assets/logo.svg'
+import { ethers } from "ethers";
 
 const MobileSidebar = () => {
   const [isOpen, setOpen] = useState(false);
-  const { disconnect } = useDisconnect()
+   const { disconnect } = useDisconnect();
+  const { address } = useAppKitAccount();
+   const { walletProvider } = useAppKitProvider("eip155");
+   const [shortAddress, setShortAddress] = useState("");
+   const [balance, setBalance] = useState("0");
+   
+   useEffect(() => {
+     if (address) {
+       const formatted = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+       setShortAddress(formatted);
+       
+       const fetchBalance = async () => {
+         try {
+           if (walletProvider) {
+             const provider = new ethers.BrowserProvider(walletProvider);
+             const balanceWei = await provider.getBalance(address);
+             const balanceEth = ethers.formatEther(balanceWei);
+             setBalance(parseFloat(balanceEth).toFixed(4));
+           }
+         } catch (error) {
+           console.error("Error fetching balance:", error);
+           setBalance("Error");
+         }
+       };
+       
+       fetchBalance();
+     }
+   }, [address, walletProvider]);
 
   const activeStyle = {
     borderLeft: '1px solid #2A382A',
@@ -27,7 +55,7 @@ const MobileSidebar = () => {
       <img src={logo} alt="" className="w-[150px] my-4" />
       <Hamburger toggled={isOpen} toggle={setOpen} color="#427142" direction="right" />
       {isOpen && (
-        <div className="bg-[#DBECDB] text-[rgb(15,22,15)] p-8 py-12 h-[100vh] w-[100%] absolute top-20 left-0 bg-baseBlack/70 z-50">
+        <div className="bg-[#EDF5FE] text-[rgb(15,22,15)] p-8 py-12 h-[100vh] w-[50%] absolute top-20 left-0 bg-baseBlack/70 z-50">
           <w3m-button />
           <NavLink
             to="/dashboard"
@@ -78,9 +106,9 @@ const MobileSidebar = () => {
             <TbSettings className="mr-4" /> Log out
           </button>
           <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#0F160F] items-center py-2  px-6  hover:text-[#154A80] font-bold">Wallet Address:</p>
-          <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#0F160F]">0xf768912a201645nnq710</p>
+          <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#0F160F]"> {address ? shortAddress : "Not connected"}</p>
           <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#0F160F] items-center py-2 px-6  hover:text-[#154A80] font-bold">You currently have:</p>
-          <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#0F160F] ">20 GR points</p>
+          <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#0F160F] "> {balance} ETH</p>
         </div>
       )}
     </header>

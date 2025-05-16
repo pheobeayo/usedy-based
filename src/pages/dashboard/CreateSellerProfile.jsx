@@ -137,7 +137,7 @@ const CreateSellerProfile = () => {
       ) : (
         <div className='flex lg:flex-row md:flex-row flex-col justify-between items-center my-10 text-[#0F160F] flex-wrap'>
           {Array.isArray(allSeller) && allSeller.map((info, index) => {
-            // Skip invalid entries
+  
             if (!info || !info.address) return null;
             
             const isCurrentUser = info.address?.toLowerCase() === address?.toLowerCase();
@@ -158,11 +158,11 @@ const CreateSellerProfile = () => {
                   className='w-[120px] h-[120px] rounded-full mx-auto' 
                 />
                 <h3 className='font-bold lg:text-[20px] md:text-[20px] text-[18px] capitalize text-center mt-3'>
-                  {info.name || "Unnamed Seller"}
+                  {info.name}
                 </h3>
-                <p className='flex justify-between my-4'>Mail <span>{info.mail || "No email provided"}</span></p>
-                <p className='flex justify-between my-4'>Location <span>{info.location || "No location provided"}</span></p>
-                <p className='flex justify-between my-4'>Products <span>{info.product || "0"}</span></p>
+                <p className='flex justify-between my-4'>Mail <span>{info.mail}</span></p>
+                <p className='flex justify-between my-4'>Location <span>{info.location}</span></p>
+                <p className='flex justify-between my-4'>Products <span>{info.product }</span></p>
                 <p className='flex justify-between my-4'>Seller's wallet address: <span>{truncateAddress(info.address)}</span></p>
                 <p className='flex justify-between my-4 font-bold'>
                   Payment Total: <span>{convertToWholeNumber(formatUnits(info.payment || "0"))} ETH</span>

@@ -80,9 +80,7 @@ const UserSellerProfile = () => {
         )}
       </div>
 
-    
-     
-      <div className="flex flex-col lg:flex-row justify-between flex-wrap md:flex-row">
+    <div className="flex flex-col lg:flex-row justify-between flex-wrap md:flex-row">
         {isLoading ? (
           <div className="w-full flex justify-center items-center py-12">
             <LoadingSpinner />

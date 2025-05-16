@@ -1,3 +1,4 @@
+
 import { CgHomeAlt } from "react-icons/cg";
 import { BiBox } from "react-icons/bi";
 import { IoIosAddCircleOutline } from "react-icons/io";
@@ -7,11 +8,39 @@ import { BsBell } from "react-icons/bs";
 import { BsReceipt } from "react-icons/bs";
 import { NavLink } from "react-router-dom";
 import logo from '../assets/logo.svg';
-import { useDisconnect } from "@reown/appkit/react";
-
+import { useDisconnect, useAppKitAccount, useAppKitProvider } from "@reown/appkit/react";
+import { useState, useEffect } from "react";
+import { ethers } from "ethers";
 
 const Sidebar = () => {
-  const { disconnect } = useDisconnect()
+  const { disconnect } = useDisconnect();
+  const { address } = useAppKitAccount();
+  const { walletProvider } = useAppKitProvider("eip155");
+  const [shortAddress, setShortAddress] = useState("");
+  const [balance, setBalance] = useState("0");
+  
+  useEffect(() => {
+    if (address) {
+      const formatted = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+      setShortAddress(formatted);
+      
+      const fetchBalance = async () => {
+        try {
+          if (walletProvider) {
+            const provider = new ethers.BrowserProvider(walletProvider);
+            const balanceWei = await provider.getBalance(address);
+            const balanceEth = ethers.formatEther(balanceWei);
+            setBalance(parseFloat(balanceEth).toFixed(4));
+          }
+        } catch (error) {
+          console.error("Error fetching balance:", error);
+          setBalance("Error");
+        }
+      };
+      
+      fetchBalance();
+    }
+  }, [address, walletProvider]);
 
   const activeStyle = {
     borderLeft: '1px solid #2A382A',
@@ -31,9 +60,13 @@ const Sidebar = () => {
       <NavLink to="transactions" className="text-[14px] text-[#0F160F]  flex items-center py-4 mb-4 px-6  hover:text-[#154A80]" style={({ isActive }) => isActive ? activeStyle : null}><BsReceipt className="mr-4" /> Transactions</NavLink>
       <button className="text-[14px] text-[#0F160F]  flex items-center py-4 mb-4 px-6  hover:text-[#154A80]" onClick={disconnect} ><TbSettings className="mr-4" /> Log out</button>
       <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#0F160F] items-center py-2  px-6  hover:text-[#154A80] font-bold">Wallet Address:</p>
-      <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#154A80]">0xf768912a201645nnq710</p>
+      <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#154A80]">
+        {address ? shortAddress : "Not connected"}
+      </p>
       <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#0F160F] items-center py-2 px-6  hover:text-[#154A80] font-bold">You currently have:</p>
-      <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#154A80] ">20 GR points</p>
+      <p className="lg:text-[14px] md:text-[14px] text-[14px] text-[#154A80] items-center py-2  px-6  hover:text-[#154A80]">
+        {balance} ETH
+      </p>
     </div>
   );
 }

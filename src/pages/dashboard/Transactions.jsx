@@ -15,16 +15,18 @@ import useContractInstance from "../../Hooks/useContractInstance";
 
 const Transactions = () => {
   const navigate = useNavigate();
-  const {  address } = useSignerorProvider();
-  const { usedyContract } = useContractInstance(false); // using readOnlyProvider for reading
-  const allProduct = UseGetAllProduct();
-  const allSeller = useGetSeller();
+  const { address } = useSignerorProvider();
+  const contract  = useContractInstance(false); 
+  const { allProduct } = UseGetAllProduct(); 
+  const { allSeller } = useGetSeller(); 
 
   const [value, setValue] = useState("1");
   const [purchase, setPurchase] = useState([]);
   const [approved, setApproved] = useState([]);
 
-  const userSeller = allSeller.find((data) => data?.address === address);
+  const userSeller = allSeller && Array.isArray(allSeller) 
+    ? allSeller.find((data) => data?.address === address) 
+    : null;
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -32,17 +34,17 @@ const Transactions = () => {
 
   useEffect(() => {
     const fetchEvents = async () => {
-      if (!usedyContract || !address) return;
+      if (!contract || !address) return;
 
       try {
-        const deploymentBlockNumber = 2710870; // Update if needed
+        const deploymentBlockNumber = 25819479; 
 
-        const purchaseFilter = usedyContract.filters.ProductBought(address);
-        const approveFilter = usedyContract.filters.PaymentApproved(address);
+        const purchaseFilter = contract.filters.ProductBought(address);
+        const approveFilter = contract.filters.PaymentApproved(address);
 
         const [purchaseEvents, approveEvents] = await Promise.all([
-          usedyContract.queryFilter(purchaseFilter, deploymentBlockNumber, "latest"),
-          usedyContract.queryFilter(approveFilter, deploymentBlockNumber, "latest"),
+          contract.queryFilter(purchaseFilter, deploymentBlockNumber, "latest"),
+          contract.queryFilter(approveFilter, deploymentBlockNumber, "latest"),
         ]);
 
         const purchases = purchaseEvents.map((event) => ({
@@ -65,7 +67,7 @@ const Transactions = () => {
     };
 
     fetchEvents();
-  }, [usedyContract, address]);
+  }, [contract, address]);
 
   return (
     <main>
@@ -127,7 +129,9 @@ const Transactions = () => {
                 </div>
               ) : (
                 purchase.map((p, index) => {
-                  const product = allProduct.find((item) => item?.id === p.id);
+                  const product = Array.isArray(allProduct) 
+                    ? allProduct.find((item) => item?.id === p.id.toString())
+                    : null;
 
                   return (
                     <div
@@ -166,7 +170,9 @@ const Transactions = () => {
                 </div>
               ) : (
                 approved.map((p, index) => {
-                  const product = allProduct.find((item) => item?.id === p.id);
+                  const product = Array.isArray(allProduct)
+                    ? allProduct.find((item) => item?.id === p.id.toString())
+                    : null;
 
                   return (
                     <div
