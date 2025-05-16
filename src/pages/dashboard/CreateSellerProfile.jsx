@@ -4,13 +4,11 @@ import profileBg from '../../assets/profile.png';
 import useGetSeller from '../../Hooks/useGetSeller';
 import { formatUnits } from 'ethers';
 import EditProfile from '../../components/EditProfile';
-import { useAppKitProvider } from '@reown/appkit/react';
+import { useAppKitAccount } from '@reown/appkit/react';
 
 const CreateSellerProfile = () => {
-  const allSeller = useGetSeller();
-  const { address } = useAppKitProvider("eip155");
-
-  const sellers = Array.isArray(allSeller) ? allSeller : [];
+  const { allSeller, loading, error, refetch: refetchSellers  } = useGetSeller();
+  const { address } = useAppKitAccount();
 
   const truncateAddress = (address) => {
     if (!address) return '';
@@ -30,30 +28,38 @@ const CreateSellerProfile = () => {
             <h2 className='lg:text-[24px] md:text-[24px] text-[18px] font-bold mb-4'>Usedy - Where environmental consciousness gets you rewarded</h2>
             <p>To get started listing your eco friendly product, create a seller's profile.</p>
             <div className='mt-6'>
-            <CreateProfile /> 
+            <CreateProfile refetchSellers={refetchSellers} /> 
             </div>
         </div>
         <div className='lg:w-[40%] md:w-[40%] w-[100%] bg-[#EDF5FE] lg:rounded-tl-[50%] md:rounded-tl-[50%] lg:rounded-bl-[50%] rounded-tl-[50%] rounded-tr-[50%] text-right lg:rounded-tr-[20px] rounded-bl-[20px] rounded-br-[20px] p-6 flex justify-center'>
             <img src={profileBg} alt="dashboard"  className='w-[100%] lg:w-[60%] md:w-[60%]'/>
         </div>
-    </div>
+      </div>
 
       <h2 className='lg:text-[24px] md:text-[24px] text-[18px] font-bold my-6'>All Seller's Profile</h2>
 
-      <div className='flex lg:flex-row md:flex-row flex-col justify-between items-center my-10 text-[#0F160F] flex-wrap'>
-        {sellers?.map((info) => (
-          <div className='lg:w-[32%] md:w-[32%] w-[100%] p-4 border border-[#0F160F]/20 rounded-lg mb-4 shadow-lg' key={info.id}>
-            <img src='https://img.freepik.com/free-psd/abstract-background-design_1297-86.jpg' alt="" className='w-[120px] h-[120px] rounded-full mx-auto' />
-            <h3 className='font-bold lg:text-[20px] md:text-[20px] text-[18px] capitalize text-center'>{info.name}</h3>
-            <p className='flex justify-between my-4'>Mail <span>{info.mail}</span></p>
-            <p className='flex justify-between my-4'>Location <span>{info.location}</span></p>
-            <p className='flex justify-between my-4'>Products <span>{info.product}</span></p>
-            <p className='flex justify-between my-4'>Seller's wallet address: <span>{truncateAddress(info.address)}</span></p>
-            <p className='flex justify-between my-4 font-bold'>Payment Total: <span>{convertToWholeNumber(formatUnits(info.payment))} ETH</span></p>
-            {info.address === address && <EditProfile id={Number(info.id)} />}
-          </div>
-        ))}
-      </div>
+      {loading ? (
+        <div className="text-center py-6">Loading seller profiles...</div>
+      ) : error ? (
+        <div className="text-center py-6 text-red-500">{error}</div>
+      ) : allSeller.length === 0 ? (
+        <div className="text-center py-6">No seller profiles found</div>
+      ) : (
+        <div className='flex lg:flex-row md:flex-row flex-col justify-between items-center my-10 text-[#0F160F] flex-wrap'>
+          {allSeller.map((info) => (
+            <div className='lg:w-[32%] md:w-[32%] w-[100%] p-4 border border-[#0F160F]/20 rounded-lg mb-4 shadow-lg' key={info.id}>
+              <img src='https://img.freepik.com/free-psd/abstract-background-design_1297-86.jpg' alt="" className='w-[120px] h-[120px] rounded-full mx-auto' />
+              <h3 className='font-bold lg:text-[20px] md:text-[20px] text-[18px] capitalize text-center'>{info.name}</h3>
+              <p className='flex justify-between my-4'>Mail <span>{info.mail}</span></p>
+              <p className='flex justify-between my-4'>Location <span>{info.location}</span></p>
+              <p className='flex justify-between my-4'>Products <span>{info.product}</span></p>
+              <p className='flex justify-between my-4'>Seller's wallet address: <span>{truncateAddress(info.address)}</span></p>
+              <p className='flex justify-between my-4 font-bold'>Payment Total: <span>{convertToWholeNumber(formatUnits(info.payment))} ETH</span></p>
+              {info.address === address && <EditProfile id={Number(info.id)} />}
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 };

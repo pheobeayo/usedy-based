@@ -17,7 +17,7 @@ const style = {
   p: 4,
 };
 
-const CreateProfile = () => {
+const CreateProfile = ({ refetchSellers }) => {
   const [open, setOpen] = useState(false);
   const [sellerName, setSellerName] = useState('');
   const [location, setLocation] = useState('');
@@ -31,6 +31,9 @@ const CreateProfile = () => {
   const handleCreateProfile = async () => {
     const success = await createProfile(sellerName, location, mail);
     if (success) {
+      if (refetchSellers) {
+        refetchSellers(); // 👈 manually refresh seller data
+      }
       setSellerName('');
       setLocation('');
       setMail('');
