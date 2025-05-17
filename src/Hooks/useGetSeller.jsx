@@ -13,16 +13,26 @@ const useGetSeller = () => {
   const { isConnected } = useAppKitAccount();
   const { walletProvider } = useAppKitProvider("eip155");
 
-  const convertProxyToObject = (proxyData) => {
-    if (proxyData && typeof proxyData === 'object' && 'length' in proxyData) {
-      return Array.from({ length: proxyData.length }).map((_, i) => {
-        if (proxyData[i] && typeof proxyData[i] === 'object' && 'length' in proxyData[i]) {
-          return convertProxyToObject(proxyData[i]);
+  
+  const convertToRealArray = (result) => {
+    if (!result) return [];
+    
+    if (Array.isArray(result)) return result;
+  
+    if (typeof result === 'object' && 'length' in result && typeof result.length === 'number') {
+
+      return Array.from({ length: Number(result.length) }, (_, i) => {
+        const item = result[i];
+      
+        if (item && typeof item === 'object' && 'length' in item) {
+          return convertToRealArray(item);
         }
-        return proxyData[i];
+        return item;
       });
     }
-    return proxyData;
+    
+
+    return [];
   };
 
   const fetchAllSeller = useCallback(async () => {
@@ -53,41 +63,41 @@ const useGetSeller = () => {
       
       const rawData = await contract.getallSeller();
       console.log("Raw sellers data received:", rawData);
+      const sellersArray = convertToRealArray(rawData);
+      console.log("Converted to real array:", sellersArray);
 
-      const sellersArray = convertProxyToObject(rawData);
-      console.log("Converted sellers array:", sellersArray);
-
-      if (!sellersArray || !Array.isArray(sellersArray)) {
-        console.warn("No valid seller data returned from contract");
+      if (!sellersArray.length) {
+        console.warn("No sellers found or empty array returned");
         setAllSeller([]);
         setSellerCount(0);
         setLoading(false);
         return;
       }
 
-      const mapped = sellersArray
-        .map((item, index) => {
-          if (!Array.isArray(item)) {
-            console.warn(`Seller at index ${index} is not properly formatted:`, item);
-            return null;
-          }
-          try {
-            return {
-              address: item[0] || "",
-              id: (item[1] ? item[1].toString() : "0"),
-              name: item[2] || "",
-              location: item[3] || "",
-              mail: item[4] || "",
-              product: (item[5] ? item[5].toString() : "0"),
-              weight: (item[6] ? item[6].toString() : "0"),
-              payment: (item[7] ? item[7].toString() : "0"),
-            };
-          } catch (err) {
-            console.error(`Error processing seller at index ${index}:`, err, item);
-            return null;
-          }
-        })
-        .filter(item => item !== null); 
+      const mapped = sellersArray.map((item, index) => {
+        const sellerArray = convertToRealArray(item);
+        
+        if (!sellerArray.length) {
+          console.warn(`Seller at index ${index} couldn't be converted to array:`, item);
+          return null;
+        }
+
+        try {
+          return {
+            address: sellerArray[0] || "",
+            id: (sellerArray[1] ? sellerArray[1].toString() : "0"),
+            name: sellerArray[2] || "",
+            location: sellerArray[3] || "",
+            mail: sellerArray[4] || "",
+            product: (sellerArray[5] ? sellerArray[5].toString() : "0"),
+            weight: (sellerArray[6] ? sellerArray[6].toString() : "0"),
+            payment: (sellerArray[7] ? sellerArray[7].toString() : "0"),
+          };
+        } catch (err) {
+          console.error(`Error processing seller at index ${index}:`, err, item);
+          return null;
+        }
+      }).filter(Boolean); 
 
       console.log("Processed sellers data:", mapped);
       setAllSeller(mapped);

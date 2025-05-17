@@ -10,45 +10,48 @@ import { Link } from "react-router-dom";
 const UserSellerProfile = () => {
   const { address } = useAppKitAccount();
   const [mounted, setMounted] = useState(false);
-
-  // Get seller and product data from hooks
-  const { allSeller, loading: sellerLoading} = useGetSeller();
+  const { allSeller, loading: sellerLoading } = useGetSeller();
   const { allProduct, loading: productLoading } = useGetAllProduct();
 
-  // Ensure component is mounted before doing calculations
+
   useEffect(() => {
     setMounted(true);
     return () => setMounted(false);
   }, []);
 
-  // Find the current user's seller profile
+  const ensureArray = (data) => {
+    if (!data) return [];
+    return Array.isArray(data) ? data : [];
+  };
+
   const userSeller = useMemo(() => {
     if (!mounted || !allSeller || !address) return null;
-    return allSeller.find((data) => data?.address?.toLowerCase() === address?.toLowerCase());
+    
+    const sellerArray = ensureArray(allSeller);
+    return sellerArray.find((data) => data?.address?.toLowerCase() === address?.toLowerCase());
   }, [allSeller, address, mounted]);
 
-  // Filter products to only show this user's products
   const userProducts = useMemo(() => {
     if (!mounted || !allProduct || !address) return [];
-    return Array.isArray(allProduct) 
-      ? allProduct.filter((info) => info?.address?.toLowerCase() === address?.toLowerCase())
-      : [];
+    
+    const productArray = ensureArray(allProduct);
+    return productArray.filter((info) => info?.address?.toLowerCase() === address?.toLowerCase());
   }, [allProduct, address, mounted]);
 
-  // Debug logging
   useEffect(() => {
     if (mounted) {
       console.log("Current user address:", address);
-      console.log("All sellers:", allSeller);
+      console.log("All sellers (type):", Array.isArray(allSeller) ? "array" : typeof allSeller);
+      console.log("All sellers length:", ensureArray(allSeller).length);
       console.log("User seller found:", userSeller);
-      console.log("All products:", allProduct);
+      console.log("All products (type):", Array.isArray(allProduct) ? "array" : typeof allProduct);
+      console.log("All products length:", ensureArray(allProduct).length);
       console.log("User products filtered:", userProducts);
     }
   }, [mounted, address, allSeller, userSeller, allProduct, userProducts]);
 
   const isLoading = sellerLoading || productLoading;
 
- 
   const safeFormatUnits = (value) => {
     try {
       if (!value) return "0";
@@ -80,7 +83,7 @@ const UserSellerProfile = () => {
         )}
       </div>
 
-    <div className="flex flex-col lg:flex-row justify-between flex-wrap md:flex-row">
+      <div className="flex flex-col lg:flex-row justify-between flex-wrap md:flex-row">
         {isLoading ? (
           <div className="w-full flex justify-center items-center py-12">
             <LoadingSpinner />

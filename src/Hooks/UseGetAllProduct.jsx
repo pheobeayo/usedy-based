@@ -19,19 +19,28 @@ const useGetAllProduct = () => {
         return url;
     };
 
-    // Helper function to convert ethers.js Proxy objects to plain JS objects
-    const convertProxyToObject = (proxyData) => {
-        // If it's an array-like object, convert it to a real array and process each item
-        if (proxyData && typeof proxyData === 'object' && 'length' in proxyData) {
-            return Array.from({ length: proxyData.length }).map((_, i) => {
-                if (proxyData[i] && typeof proxyData[i] === 'object' && 'length' in proxyData[i]) {
-                   
-                    return convertProxyToObject(proxyData[i]);
+    // Improved function to properly convert ethers Result objects to real arrays
+    const convertToRealArray = (result) => {
+        if (!result) return [];
+        
+        // If it's already a standard array, return it
+        if (Array.isArray(result)) return result;
+        
+        // Convert array-like object to a real array
+        if (typeof result === 'object' && 'length' in result && typeof result.length === 'number') {
+            // Use Array.from with a proper mapping function
+            return Array.from({ length: Number(result.length) }, (_, i) => {
+                const item = result[i];
+                // Recursively convert nested array-like objects
+                if (item && typeof item === 'object' && 'length' in item) {
+                    return convertToRealArray(item);
                 }
-                return proxyData[i];
+                return item;
             });
         }
-        return proxyData;
+        
+        // If it's not array-like at all, return an empty array
+        return [];
     };
 
     const fetchAllProduct = useCallback(async () => {
@@ -51,36 +60,41 @@ const useGetAllProduct = () => {
             const rawData = await contract.getAllproduct();
             console.log("Raw product data:", rawData);
 
-            const productsArray = convertProxyToObject(rawData);
-            console.log("Converted product array:", productsArray);
+            // Convert the raw data to a real JavaScript array
+            const productsArray = convertToRealArray(rawData);
+            console.log("Converted to real array:", productsArray);
 
-            if (!productsArray || !Array.isArray(productsArray) || productsArray.length === 0) {
-                console.warn("No valid product data returned from contract");
+            if (!productsArray.length) {
+                console.warn("No products found or empty array returned");
                 setAllProduct([]);
                 setLoading(false);
                 return;
             }
             
+            // Process each product item
             const converted = productsArray.map((item, index) => {
+                // Make sure each product item is also a real array
+                const productArray = convertToRealArray(item);
                 
-                if (!Array.isArray(item)) {
-                    console.warn(`Product at index ${index} is not properly formatted:`, item);
+                if (!productArray.length) {
+                    console.warn(`Product at index ${index} couldn't be converted to array:`, item);
                     return null;
                 }
 
+                // Map the array items to an object with named properties
                 return {
                     id: (index + 1).toString(),
-                    address: item[0] || "",
-                    name: item[1] || "",
-                    image: convertIpfsUrl(item[2] || ""),
-                    location: item[3] || "",
-                    product: item[4] || "",
-                    price: item[5] || ethers.parseEther("0"), // Default to 0 ETH if missing
-                    weight: (item[6] || "0").toString(),
-                    sold: item[7] || false,
-                    inProgress: item[8] || false
+                    address: productArray[0] || "",
+                    name: productArray[1] || "",
+                    image: convertIpfsUrl(productArray[2] || ""),
+                    location: productArray[3] || "",
+                    product: productArray[4] || "",
+                    price: productArray[5] || ethers.parseEther("0"), // Default to 0 ETH if missing
+                    weight: (productArray[6] || "0").toString(),
+                    sold: productArray[7] || false,
+                    inProgress: productArray[8] || false
                 };
-            }).filter(item => item !== null); // Remove any null items
+            }).filter(Boolean); // Remove any null or undefined items
 
             console.log("Processed products:", converted);
             setAllProduct(converted);
